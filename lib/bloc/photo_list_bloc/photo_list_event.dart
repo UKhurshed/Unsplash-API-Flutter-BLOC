@@ -1,0 +1,17 @@
+part of 'photo_list_bloc.dart';
+
+@immutable
+abstract class PhotoListEvent extends Equatable {
+  const PhotoListEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+class GetInitialPhotos extends PhotoListEvent{
+  const GetInitialPhotos();
+}
+
+class AddPic extends PhotoListEvent{
+  const AddPic();
+}
