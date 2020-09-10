@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pic_load/screens/pages/details_screen.dart';
+import 'package:pic_load/screens/pages/search_photo.dart';
 
 import 'pages/home.dart';
 

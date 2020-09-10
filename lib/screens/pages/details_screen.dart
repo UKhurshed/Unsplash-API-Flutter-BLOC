@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:pic_load/model/item_picture.dart';
+import 'package:pic_load/model/search_photos.dart';
 
 class PhotoDetailPageArguments {
-  final PhotoListBean photoListBean;
-
-  PhotoDetailPageArguments(this.photoListBean);
+  final SearchPhotoList searchPhotoList;
+  PhotoDetailPageArguments( this.searchPhotoList);
 }
 
 class DetailsPage extends StatelessWidget {
@@ -13,14 +12,14 @@ class DetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     PhotoDetailPageArguments args = ModalRoute.of(context).settings.arguments;
-    return Scaffold(body: PhotoDetailWidget(photoListBean: args.photoListBean));
+    return Scaffold(body: PhotoDetailWidget(searchPhotoList: args.searchPhotoList));
   }
 }
 
 class PhotoDetailWidget extends StatefulWidget {
-  final PhotoListBean photoListBean;
+  final SearchPhotoList searchPhotoList;
 
-  const PhotoDetailWidget({Key key, this.photoListBean}) : super(key: key);
+  const PhotoDetailWidget({Key key, this.searchPhotoList}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -29,13 +28,12 @@ class PhotoDetailWidget extends StatefulWidget {
 }
 
 class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
-  bool isLiked = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.photoListBean.user.name),
+        title: Text(widget.searchPhotoList.results.user.name),
         backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -47,15 +45,15 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Hero(
-                  tag: 'photo#${widget.photoListBean.id}',
-                  child: Image.network(widget.photoListBean.urls.regular),
+                  tag: 'photo#${widget.searchPhotoList.results.id}',
+                  child: Image.network(widget.searchPhotoList.results.urls.regular),
                 ),
               ),
               SizedBox(
                 height: 10,
               ),
               Text(
-                widget.photoListBean.altDescription ?? 'None',
+                widget.searchPhotoList.results.description ?? 'None',
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(
@@ -67,7 +65,7 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
                   CircleAvatar(
                     radius: 30,
                     backgroundImage: NetworkImage(
-                        widget.photoListBean.user.profileImage.medium),
+                        widget.searchPhotoList.results.user.profileImage.medium),
                   ),
                   SizedBox(
                     width: 8,
@@ -76,7 +74,7 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.photoListBean.user.name,
+                        widget.searchPhotoList.results.user.name,
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 20),
                       ),
@@ -84,7 +82,7 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
                         height: 4,
                       ),
                       Text(
-                        widget.photoListBean.user.instagramUsername ?? 'None',
+                        widget.searchPhotoList.results.user.instagramUsername ?? 'None',
                         style: TextStyle(fontSize: 16),
                       )
                     ],
@@ -109,7 +107,7 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
                     width: 6,
                   ),
                   Text(
-                    widget.photoListBean.likes.toString(),
+                    widget.searchPhotoList.results.likes.toString(),
                     style: TextStyle(fontSize: 18),
                   )
                 ],
