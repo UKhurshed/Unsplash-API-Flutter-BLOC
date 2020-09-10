@@ -1,4 +1,4 @@
-# pic_load
+# Unsplash API for Flutter BLOC
 
 A new Flutter application.
 
