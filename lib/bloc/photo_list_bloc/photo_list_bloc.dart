@@ -12,7 +12,6 @@ part 'photo_list_state.dart';
 
 class PhotoListBloc extends Bloc<PhotoListEvent, PhotoListState> {
   final PhotoRepository photoRepository;
-  int _page = 0;
 
   PhotoListBloc(this.photoRepository) : super(PhotoListInitial());
 
@@ -20,18 +19,28 @@ class PhotoListBloc extends Bloc<PhotoListEvent, PhotoListState> {
   Stream<PhotoListState> mapEventToState(
     PhotoListEvent event,
   ) async* {
-    if (event is GetInitialPhotos) {
-      yield PhotoListInitial();
-      for (int _i = 0; _i < 7; _i++) {
-        _page = _i;
-        final photos = await photoRepository.getPhotos(_page);
-        yield PhotoListLoaded(photos, _page);
+    final currentState = state;
+    if (event is AddPic) {
+      try {
+        if (currentState is PhotoListInitial) {
+          final photos = await photoRepository.getPhotos(0);
+          yield PhotoListLoaded(photos, 0);
+        } else if (currentState is PhotoListLoaded) {
+          int currentPage = currentState.page;
+          final photos =
+          await photoRepository.getPhotos(currentPage++);
+          print("current_page = $currentPage");
+          yield photos.isEmpty
+              ? currentState.copyWith(photos)
+              : PhotoListLoaded(currentState.photos + photos, currentPage);
+        }
+      } catch (error, stacktrace) {
+        yield PhotoListError();
+        print(error);
+        print(stacktrace);
       }
     }
-    if (event is AddPic) {
-      final photos = await photoRepository.getPhotos(++_page);
-      yield PhotoListLoaded(photos, _page);
-    }
+
 
   }
 }

@@ -8,10 +8,6 @@ abstract class PhotoListEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class GetInitialPhotos extends PhotoListEvent{
-  const GetInitialPhotos();
-}
-
 class AddPic extends PhotoListEvent{
   const AddPic();
 }

@@ -6,7 +6,6 @@ import 'package:pic_load/model/item_picture.dart';
 import 'package:pic_load/repository/photo_repository.dart';
 import 'package:pic_load/screens/pages/details_screen.dart';
 import 'package:pic_load/screens/widgets/bottomLoader.dart';
-import 'package:pic_load/utils/hex_color.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class ListPhoto extends StatelessWidget {
@@ -37,7 +36,7 @@ class __ListPhotoState extends State<_ListPhoto> {
   void initState() {
     _scrollController.addListener(_onScroll);
     _photoListBloc = BlocProvider.of<PhotoListBloc>(context);
-    _photoListBloc.add(GetInitialPhotos());
+    _photoListBloc.add(AddPic());
     super.initState();
   }
 
@@ -58,9 +57,7 @@ class __ListPhotoState extends State<_ListPhoto> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PhotoListBloc, PhotoListState>(
-        // ignore: missing_return
         builder: (buildContext, state) {
-      // ignore: missing_return
       if (state is PhotoListError) {
         Scaffold.of(context).showSnackBar(SnackBar(
           content: Text('Error'),
@@ -84,11 +81,13 @@ class __ListPhotoState extends State<_ListPhoto> {
               PhotoListBean item = state.photos[index];
               double displayWidth = MediaQuery.of(context).size.width;
               double finalHeight = displayWidth / (item.width / item.height);
-              Color primaryColor = HexColor(item.color);
-              return InkWell(
-                onTap: () => _onPhotoTap(item),
+
+              return Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: InkWell(
+                  onTap: () => _onPhotoTap(item),
                   child: Hero(
-                    tag: 'photo${item.altDescription}',
+                    tag: 'photo${item.id}',
                     child: Stack(
                       children: [
                         SizedBox(
@@ -96,7 +95,17 @@ class __ListPhotoState extends State<_ListPhoto> {
                           height: 5,
                         ),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(20),
+                          child: FadeInImage.memoryNetwork(
+                            image: item.urls.thumb,
+                            placeholder: kTransparentImage,
+                            fit: BoxFit.fitWidth,
+                            width: displayWidth,
+                            height: finalHeight,
+                          ),
+                        ),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
                           child: FadeInImage.memoryNetwork(
                             image: item.urls.regular,
                             placeholder: kTransparentImage,
@@ -108,10 +117,11 @@ class __ListPhotoState extends State<_ListPhoto> {
                       ],
                     ),
                   ),
-                // ),
+                ),
               );
             });
       }
+      return Center(child: Text("YEP"));
     });
   }
 
@@ -119,10 +129,8 @@ class __ListPhotoState extends State<_ListPhoto> {
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => DetailsPage(),
-          settings: RouteSettings(
-            arguments: PhotoDetailPageArguments(photoListBean)
-          )
-        ));
+            builder: (context) => DetailsPage(),
+            settings: RouteSettings(
+                arguments: PhotoDetailPageArguments(photoListBean))));
   }
 }
