@@ -1,5 +1,8 @@
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:pic_load/model/item_picture.dart';
+
+import '../../admob_manager.dart';
 
 class PhotoDetailPageArguments {
   final PhotoListBean photoListBean;
@@ -8,7 +11,6 @@ class PhotoDetailPageArguments {
 }
 
 class DetailsPage extends StatelessWidget {
-  static final routeName = "photoDetailPage";
 
   @override
   Widget build(BuildContext context) {
@@ -30,13 +32,15 @@ class PhotoDetailWidget extends StatefulWidget {
 
 class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
   bool isLiked = false;
+  BannerAd _bannerAd;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        // leading: Icon(Icons.arrow_back),
         title: Text(widget.photoListBean.user.name),
-        backgroundColor: Colors.white,
+        // backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -103,7 +107,7 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
                     icon: Icon(
                       Icons.favorite_border,
                       size: 30,
-                    ),
+                    ), onPressed: () { },
                   ),
                   SizedBox(
                     width: 6,
@@ -122,5 +126,29 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
         ),
       ),
     );
+  }
+
+  BannerAd createBannerAd() {
+    return BannerAd(
+        adUnitId: AdManager.bannerAdUnitId,
+        //Change BannerAd adUnitId with Admob ID
+        size: AdSize.banner,
+        listener: (MobileAdEvent event) {
+          print("BannerAd $event");
+        });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _bannerAd.dispose();
+  }
+  @override
+  void initState() {
+    super.initState();
+    FirebaseAdMob.instance.initialize(appId: AdManager.appId);
+    _bannerAd = createBannerAd()
+    ..load()
+    ..show();
   }
 }
