@@ -1,6 +1,8 @@
 import 'package:firebase_admob/firebase_admob.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:pic_load/model/item_picture.dart';
+import 'package:pic_load/model/message.dart';
 
 import '../../admob_manager.dart';
 
@@ -33,6 +35,8 @@ class PhotoDetailWidget extends StatefulWidget {
 class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
   bool isLiked = false;
   BannerAd _bannerAd;
+  final FirebaseMessaging firebaseMessaging = FirebaseMessaging();
+  final List<Message> messages = [];
 
   @override
   Widget build(BuildContext context) {
@@ -119,14 +123,24 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
                 ],
               ),
               SizedBox(
-                height: 30,
+                height: 10,
               ),
+              ListView(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                children: messages.map(buildMessage).toList(),
+              )
             ],
           ),
         ),
       ),
     );
   }
+
+  Widget buildMessage(Message message) => ListTile(
+    title: Text(message.title),
+    subtitle: Text(message.body),
+  );
 
   BannerAd createBannerAd() {
     return BannerAd(
@@ -150,5 +164,31 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
     _bannerAd = createBannerAd()
     ..load()
     ..show();
+    firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) async{
+        print("onMessage: $message");
+        final notification = message['notification'];
+        setState(() {
+          messages.add(Message(
+              title: notification['title'], body: notification['body']));
+        });
+      },
+      onLaunch: (Map<String, dynamic> message) async {
+        print("onLaunch: $message");
+        final notification = message['data'];
+        setState(() {
+          messages.add(Message(
+            title: '${notification['title']}',
+            body: '${notification['body']}',
+          ));
+        });
+      },
+      onResume: (Map<String, dynamic> message) async {
+        print("onResume: $message");
+      },
+    );
+    firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true)
+    );
   }
 }
