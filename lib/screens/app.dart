@@ -11,8 +11,10 @@ class App extends StatelessWidget  {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
       DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown
     ]);
     SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
     return MaterialApp(
