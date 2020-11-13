@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:pic_load/screens/app.dart';
 import 'package:pic_load/simple_bloc_observer.dart';
 
-void main(){
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp();
   Bloc.observer = SimpleBlocObserver();
   runApp(App());
 }
