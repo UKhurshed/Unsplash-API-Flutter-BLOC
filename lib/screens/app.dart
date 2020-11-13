@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pic_load/bloc/photo_list_bloc/photo_list_bloc.dart';
 import 'package:pic_load/repository/photo_repository.dart';
-import 'file:///C:/Users/Khurs/AndroidStudioProjects/Flutter%20Projects/Unsplash-API-Flutter-BLOC/lib/screens/webView/webView_screen.dart';
+import 'package:pic_load/screens/content/content_screen.dart';
+import 'package:pic_load/screens/download/download_screen.dart';
+
 
 import 'pages/home.dart';
+import 'webView/webView_screen.dart';
 
 class App extends StatelessWidget  {
   @override
@@ -37,8 +40,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   final List<Widget> pages = [
-    MainPage(key: PageStorageKey('Main'),),
-    WebViewScreen(key: PageStorageKey('WebView'),)
+    // DownloadScreen(key: PageStorageKey('ContentScreen'),),
+    // WebViewScreen(key: PageStorageKey('WebView'),)
   ];
 
   final PageStorageBucket bucket = PageStorageBucket();
@@ -51,17 +54,18 @@ class _HomeState extends State<Home> {
       currentIndex: currentIndex,
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(icon: Icon(Icons.list), label: 'List'),
-        BottomNavigationBarItem(icon: Icon(Icons.web,), label: 'WebView'),
+        // BottomNavigationBarItem(icon: Icon(Icons.web,), label: 'WebView'),
       ]);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _bottomNavigationBar(_currentIndex),
-      body: PageStorage(
-        child: pages[_currentIndex],
-        bucket: bucket,
-      ),
+      // bottomNavigationBar: _bottomNavigationBar(_currentIndex),
+      // body: PageStorage(
+      //   child: pages[_currentIndex],
+      //   // bucket: bucket,
+      // ),
+      body: DownloadScreen() ,
     );
   }
 }

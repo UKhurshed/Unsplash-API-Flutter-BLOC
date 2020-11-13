@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pic_load/screens/webView/itemMenu.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'navigation_controls.dart';
 
 class WebViewScreen extends StatefulWidget {
-  const WebViewScreen({Key key}) : super(key: key);
+  final String link;
+
+  const WebViewScreen({Key key, this.link}) : super(key: key);
 
   @override
-  _WebViewScreenState createState() => _WebViewScreenState();
+  _WebViewScreenState createState() => _WebViewScreenState(link);
 }
 
 JavascriptChannel snackBarJavaScriptChannel(BuildContext context) {
@@ -23,7 +26,9 @@ JavascriptChannel snackBarJavaScriptChannel(BuildContext context) {
 }
 
 class _WebViewScreenState extends State<WebViewScreen> {
-  static const String URL = 'https://unsplash.com/';
+  final String link;
+   _WebViewScreenState(this.link);
+  // static String URL = link;
 
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
@@ -39,7 +44,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       ),
       body: Builder(builder: (BuildContext context) {
         return WebView(
-          initialUrl: URL,
+          initialUrl: utf8.decode(base64.decode(link)),
           javascriptMode: JavascriptMode.unrestricted,
           onWebViewCreated: (WebViewController webViewController) {
             _controller.complete(webViewController);
