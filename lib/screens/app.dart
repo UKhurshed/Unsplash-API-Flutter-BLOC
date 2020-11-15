@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pic_load/bloc/photo_list_bloc/photo_list_bloc.dart';
 import 'package:pic_load/repository/photo_repository.dart';
+import 'package:pic_load/screens/content/content_screen.dart';
 import 'file:///C:/Users/Khurs/AndroidStudioProjects/Flutter%20Projects/Unsplash-API-Flutter-BLOC/lib/screens/webView/webView_screen.dart';
 
 import 'pages/home.dart';
@@ -37,7 +38,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   final List<Widget> pages = [
-    MainPage(key: PageStorageKey('Main'),),
+    ContentScreen(key: PageStorageKey('Content'),),
     WebViewScreen(key: PageStorageKey('WebView'),)
   ];
 
