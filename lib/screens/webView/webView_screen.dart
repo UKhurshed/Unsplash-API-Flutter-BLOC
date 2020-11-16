@@ -44,7 +44,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
       ),
       body: Builder(builder: (BuildContext context) {
         return WebView(
-          initialUrl: utf8.decode(base64.decode(link)),
+          // initialUrl: utf8.decode(base64.decode(link)),
+          initialUrl: link,
           javascriptMode: JavascriptMode.unrestricted,
           onWebViewCreated: (WebViewController webViewController) {
             _controller.complete(webViewController);

@@ -2,8 +2,9 @@ import 'dart:convert';
 
 // import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:facebook_deeplinks/facebook_deeplinks.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
+// import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:pic_load/screens/app.dart';
 import 'package:pic_load/screens/content/content_screen.dart';
@@ -19,12 +20,11 @@ class DownloadScreen extends StatefulWidget {
 }
 
 class _DownloadScreen extends State<DownloadScreen> {
+  String _deepLink = null;
   String link;
+  String decLink;
   Map<String, dynamic> data;
-  final firestoreInstance = FirebaseFirestore.instance;
-  final CollectionReference _collectionReference = FirebaseFirestore.instance.collection('test');
-
-
+  final fireStoreInstance = FirebaseFirestore.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -33,153 +33,110 @@ class _DownloadScreen extends State<DownloadScreen> {
         centerTitle: true,
         title: Text('Remote Config'),
       ),
-      body:
-        // FutureBuilder(
-        //   future: retrieveCollection(),
-        //   builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-        //     if (snapshot.connectionState == ConnectionState.done) {
-        //       return Column(
-        //         children: [
-        //           Container(
-        //             height: 27,
-        //             child: Text(
-        //               "Name: ${snapshot.data.data()['test']}",
-        //               overflow: TextOverflow.fade,
-        //               style: TextStyle(fontSize: 20),
-        //             ),
-        //           ),
-        //         ],
-        //       );
-        //     } else if (snapshot.connectionState == ConnectionState.none) {
-        //       return Text('No Data');
-        //     }
-        //     return CircularProgressIndicator();
-        //   }
-        // )
-      // Center(
-      //   child: Padding(
-      //     padding: const EdgeInsets.all(8.0),
-      //     child: Column(
-      //       mainAxisAlignment: MainAxisAlignment.center,
-      //       children: [
-      //         Text(
-      //           data.toString(),
-      //           style: TextStyle(fontSize: 20),
-      //         ),
-      //         RaisedButton(
-      //           child: Text('GET URL'),
-      //           onPressed: fetchData,
-      //             // CircularProgressIndicator(),
-      //             // Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()))
-      //
-      //
-      //         ),
-      //       ],
-      //     ),
-      //   ),
-      // ),
-      // StreamBuilder(
-      //   stream: _collectionReference.snapshots(),
-      //   builder: (context, snapshot){
-      //      switch(snapshot.connectionState){
-      //        case ConnectionState.waiting:
-      //          return Center(child: CircularProgressIndicator());
-      //          break;
-      //        default:
-      //          return ListView.builder(
-      //            itemCount: snapshot.data.documents.length,
-      //              itemBuilder: (context, index){
-      //              return _mainContent(snapshot.data.documents[index]);
-      //              }
-      //          );
-      //     }
-      //   },
-      // )
-      Center(
+      body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             RaisedButton(onPressed: () async{
-              DocumentSnapshot ds = await FirebaseFirestore.instance
-                  .collection("test")
-                  .doc("3BpleA1QXmXFjIbjNvtB")
-                  .get();
-              Map event = ds.data();
-              print(event['event']);
-              print(event['link']);
-              _mainContent(ds);
+              await getLink();
+              // var deepLink = await FacebookDeeplinks().getInitialUrl();
+              // _onRedirected(deepLink);
             }, child: Text('Get Data'),),
-            RaisedButton(onPressed: createData, child: Text('Create Data'),),
+            SizedBox(height: 15,),
+            // Text(decLink ?? 'null')
           ],
         ),
       )
     );
   }
 
-  Widget _mainContent(DocumentSnapshot snapshot) => ListTile(title: Text(snapshot.data()['link']), trailing: Text(snapshot.data()['event']),);
+  Future<void> getLink() async{
 
-  createData() async{
-    await _collectionReference.doc("1").set({'title' : 'Mastering', 'description': 'Guide'});
+    //Facebook DeepLink
+    String deepLinkUrl;
+    var facebookDeepLinks = FacebookDeeplinks();
+    facebookDeepLinks.onDeeplinkReceived.listen(_onRedirected);
+    deepLinkUrl = await facebookDeepLinks.getInitialUrl();
 
+    print("DeepLink: $deepLinkUrl ");
+
+    if (!mounted) return;
+
+    _onRedirected(deepLinkUrl);
+
+    //Cloud Firestore
+    DocumentSnapshot ds = await FirebaseFirestore.instance
+        .collection("test")
+        .doc("3BpleA1QXmXFjIbjNvtB")
+        .get();
+    Map event = ds.data();
+    print(event['enLink']);
+    if(event['enLink'] == null){
+      Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+    }else {
+      decLink = utf8.decode(base64.decode(event['enLink']));
+      print('Decode link: $decLink');
+      if(deepLinkUrl == null) {
+
+        Navigator.push(context, MaterialPageRoute(
+            builder: (context) => WebViewScreen(link: utf8.decode(base64.decode(event['enLink'])))));
+      }else {
+        //utf8.decode(base64.decode(link)),
+        //'https://mytraffictracker.com/click.php?key=uu123'
+        String link = utf8.decode(base64.decode(event['enLink']));
+        String deepNewLink = link.substring(0, link.indexOf('key')) +
+            deepLinkUrl.substring(6);
+        Navigator.push(context, MaterialPageRoute(
+            builder: (context) => WebViewScreen(link: deepNewLink)));
+      }
+    }
   }
-  fetchData(){
-    // CollectionReference collectionReference = firestoreInstance.collection('test');
-    // collectionReference.snapshots().listen((snapshot) {
-    //   setState(() {
-    //     data = snapshot.docs[0].data as Map<String, dynamic>;
-    //     print("Data: $data");
-    //   });
-    // });
-    _collectionReference.get().then((QuerySnapshot snapshot) {
-      snapshot.docs.forEach((element) => print('####################################: ${element.data}'));
+
+  void _onRedirected(String uri) {
+    setState(() {
+      _deepLink = uri;
     });
   }
 
-  Future<DocumentSnapshot> retrieveCollection() async{
-    await Firebase.initializeApp();
-      // firestoreInstance.collection("test").get().then((value){
-      //   value.docs.forEach((element){
-      //     print(element.data());
-      //     link = element.toString();
-      //   });
-      // });
-    return await firestoreInstance.collection("test").doc("qEvGUoiXtqHCf96q5xzR").get();
-  }
+  // createData() async{
+  //   await _collectionReference.doc("1").set({'title' : 'Mastering', 'description': 'Guide'});
+  //
+  // }
 
-  Future<void> getLink() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final remoteConfig = await RemoteConfig.instance;
-      final defaults = <String, dynamic>{
-        'link': "default link",
-      };
-
-      setState(() {
-        link = defaults['link'];
-      });
-
-      await remoteConfig.fetch(expiration: const Duration(minutes: 30));
-      await remoteConfig.activateFetched();
-
-      setState(() {
-        // var remoteLink = remoteConfig.getString('link');
-        // print('RemoteLink: $remoteLink');
-        // link = utf8.decode(base64.decode(remoteLink));
-        // print("Link: $link");
-        link = remoteConfig.getString('link');
-        print("Link: $link");
-        // link=null;
-        if((link == null || link.isEmpty)){
-          Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
-        }else{
-          Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(link: link)));
-        }
-      });
-    });
-  }
+  // Future<void> getLink() async {
+  //   WidgetsBinding.instance.addPostFrameCallback((_) async {
+  //     final remoteConfig = await RemoteConfig.instance;
+  //     final defaults = <String, dynamic>{
+  //       'link': "default link",
+  //     };
+  //
+  //     setState(() {
+  //       link = defaults['link'];
+  //     });
+  //
+  //     await remoteConfig.fetch(expiration: const Duration(minutes: 30));
+  //     await remoteConfig.activateFetched();
+  //
+  //     setState(() {
+  //       // var remoteLink = remoteConfig.getString('link');
+  //       // print('RemoteLink: $remoteLink');
+  //       // link = utf8.decode(base64.decode(remoteLink));
+  //       // print("Link: $link");
+  //       link = remoteConfig.getString('link');
+  //       print("Link: $link");
+  //       // link=null;
+  //       if((link == null || link.isEmpty)){
+  //         Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+  //       }else{
+  //         Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewScreen(link: link)));
+  //       }
+  //     });
+  //   });
+  // }
 
   @override
   void initState() {
     super.initState();
-
   }
 }
