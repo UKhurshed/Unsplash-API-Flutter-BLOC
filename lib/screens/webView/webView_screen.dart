@@ -1,69 +1,82 @@
 import 'dart:async';
-import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:pic_load/screens/webView/itemMenu.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'navigation_controls.dart';
 
 class WebViewScreen extends StatefulWidget {
   final String link;
 
-  const WebViewScreen({Key key, this.link}) : super(key: key);
+  const WebViewScreen({this.link});
 
   @override
-  _WebViewScreenState createState() => _WebViewScreenState(link);
+  _WebViewScreen createState() => _WebViewScreen(link);
 }
 
-JavascriptChannel snackBarJavaScriptChannel(BuildContext context) {
-  return JavascriptChannel(
-    name: 'SnackBarJSChannel',
-    onMessageReceived: (JavascriptMessage message){
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text(message.message),
-      ));
+class _WebViewScreen extends State<WebViewScreen> {
+  _WebViewScreen(this._link);
+
+  final String _link;
+
+  Future<bool> _onBack() async {
+    bool goBack;
+    var value = await webView.canGoBack();
+    if (value) {
+      webView.goBack(); // perform webview back operation
+      return false;
+    } else {
+      await showDialog(
+        context: context,
+        builder: (context) => new AlertDialog(
+          title: Text('Confirmation', style: TextStyle(color: Colors.purple)),
+          // Are you sure?
+          content: Text('Do you want exit app ? '),
+          // Do you want to go back?
+          actions:[
+             FlatButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                setState(() {
+                  goBack = false;
+                });
+              },
+              child: Text("No"), // No
+            ),
+            FlatButton(
+              onPressed: () {
+                Future.delayed(const Duration(milliseconds: 1000), () {
+                  SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                });
+                setState(() {
+                  goBack = true;
+                });
+              },
+              child: Text('Yes'), // Yes
+            ),
+          ],
+        ),
+      );
+      if (goBack) Navigator.pop(context);
+      return goBack;
     }
-  );
-}
+  }
 
-class _WebViewScreenState extends State<WebViewScreen> {
-  final String link;
-   _WebViewScreenState(this.link);
-  // static String URL = link;
-
-  final Completer<WebViewController> _controller =
-      Completer<WebViewController>();
+  WebViewController webView;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'WebView Demo',
+    return WillPopScope(
+        child: WebView(
+          initialUrl: _link,
+          onWebViewCreated: (WebViewController controller) {
+            webView = controller;
+          },
         ),
-        actions: [NavigationControls(_controller.future), ItemMenu(_controller.future)],
-      ),
-      body: Builder(builder: (BuildContext context) {
-        return WebView(
-          // initialUrl: utf8.decode(base64.decode(link)),
-          initialUrl: link,
-          javascriptMode: JavascriptMode.unrestricted,
-          onWebViewCreated: (WebViewController webViewController) {
-            _controller.complete(webViewController);
-          },
-          javascriptChannels: <JavascriptChannel>[
-            snackBarJavaScriptChannel(
-              context,
-            )
-          ].toSet(),
-          navigationDelegate: (NavigationRequest request){
-            if(request.url.startsWith("https://www.youtube.com")){
-              print("Blocking navigation");
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
-        );
-      }),
-    );
+        onWillPop: _onBack);
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 }

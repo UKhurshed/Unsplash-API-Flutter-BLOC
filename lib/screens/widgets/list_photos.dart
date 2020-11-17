@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pic_load/bloc/photo_list_bloc/photo_list_bloc.dart';
 import 'package:pic_load/model/item_picture.dart';
@@ -54,75 +55,115 @@ class __ListPhotoState extends State<_ListPhoto> {
     super.dispose();
   }
 
+  Future<bool> _onBack() async {
+    bool goBack;
+      await showDialog(
+        context: context,
+        builder: (context) => new AlertDialog(
+          title: Text('Confirmation', style: TextStyle(color: Colors.purple)),
+          // Are you sure?
+          content: Text('Do you want exit app ? '),
+          // Do you want to go back?
+          actions:[
+            FlatButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+                setState(() {
+                  goBack = false;
+                });
+              },
+              child: Text("No"), // No
+            ),
+            FlatButton(
+              onPressed: () {
+                Future.delayed(const Duration(milliseconds: 1000), () {
+                  SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                });
+                setState(() {
+                  goBack = true;
+                });
+              },
+              child: Text('Yes'), // Yes
+            ),
+          ],
+        ),
+      );
+      if (goBack) Navigator.pop(context);
+      return goBack;
+    }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PhotoListBloc, PhotoListState>(
-        builder: (buildContext, state) {
-      if (state is PhotoListError) {
-        Scaffold.of(context).showSnackBar(SnackBar(
-          content: Text('Error'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ));
-      }
-      if (state is PhotoListInitial) {
-        return Center(
-          child: CircularProgressIndicator(),
-        );
-      }
-      if (state is PhotoListLoaded) {
-        return ListView.builder(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: state.photos.length + 1,
-            controller: _scrollController,
-            itemBuilder: (buildContext, index) {
-              if (index >= state.photos.length) return BottomLoader();
-              PhotoListBean item = state.photos[index];
-              double displayWidth = MediaQuery.of(context).size.width;
-              double finalHeight = displayWidth / (item.width / item.height);
+    return WillPopScope(
+      onWillPop: _onBack,
+      child: BlocBuilder<PhotoListBloc, PhotoListState>(
+          builder: (buildContext, state) {
+        if (state is PhotoListError) {
+          Scaffold.of(context).showSnackBar(SnackBar(
+            content: Text('Error'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ));
+        }
+        if (state is PhotoListInitial) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        if (state is PhotoListLoaded) {
+          return ListView.builder(
+              scrollDirection: Axis.vertical,
+              shrinkWrap: true,
+              itemCount: state.photos.length + 1,
+              controller: _scrollController,
+              itemBuilder: (buildContext, index) {
+                if (index >= state.photos.length) return BottomLoader();
+                PhotoListBean item = state.photos[index];
+                double displayWidth = MediaQuery.of(context).size.width;
+                double finalHeight = displayWidth / (item.width / item.height);
 
-              return Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: InkWell(
-                  onTap: () => _onPhotoTap(item),
-                  child: Hero(
-                    tag: 'photo${item.id}',
-                    child: Stack(
-                      children: [
-                        SizedBox(
-                          width: displayWidth,
-                          height: 5,
-                        ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: FadeInImage.memoryNetwork(
-                            image: item.urls.thumb,
-                            placeholder: kTransparentImage,
-                            fit: BoxFit.fitWidth,
+                return Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: InkWell(
+                    onTap: () => _onPhotoTap(item),
+                    child: Hero(
+                      tag: 'photo${item.id}',
+                      child: Stack(
+                        children: [
+                          SizedBox(
                             width: displayWidth,
-                            height: finalHeight,
+                            height: 5,
                           ),
-                        ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: FadeInImage.memoryNetwork(
-                            image: item.urls.regular,
-                            placeholder: kTransparentImage,
-                            fit: BoxFit.fitWidth,
-                            width: displayWidth,
-                            height: finalHeight,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: FadeInImage.memoryNetwork(
+                              image: item.urls.thumb,
+                              placeholder: kTransparentImage,
+                              fit: BoxFit.fitWidth,
+                              width: displayWidth,
+                              height: finalHeight,
+                            ),
                           ),
-                        ),
-                      ],
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: FadeInImage.memoryNetwork(
+                              image: item.urls.regular,
+                              placeholder: kTransparentImage,
+                              fit: BoxFit.fitWidth,
+                              width: displayWidth,
+                              height: finalHeight,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            });
-      }
-      return Center(child: Text("YEP"));
-    });
+                );
+              });
+        }
+        return Center(child: Text("YEP"));
+      }),
+    );
   }
 
   _onPhotoTap(PhotoListBean photoListBean) {
