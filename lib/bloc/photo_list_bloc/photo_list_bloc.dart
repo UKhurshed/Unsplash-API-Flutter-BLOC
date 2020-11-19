@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:pic_load/model/item_picture.dart';
 import 'package:pic_load/repository/photo_repository.dart';
