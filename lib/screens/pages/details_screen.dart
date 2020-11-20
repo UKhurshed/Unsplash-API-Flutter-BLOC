@@ -1,5 +1,6 @@
 import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 // import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:pic_load/model/item_picture.dart';
 
@@ -34,8 +35,8 @@ class PhotoDetailWidget extends StatefulWidget {
 class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
   bool isLiked = false;
   BannerAd _bannerAd;
-  String content;
-  String title;
+  String content = 'content';
+  String title ='title';
 
   @override
   Widget build(BuildContext context) {
@@ -124,11 +125,11 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
               SizedBox(
                 height: 30,
               ),
-              Text(title),
+              Text(title ?? '' ),
               SizedBox(
                 height: 10,
               ),
-              Text(content),
+              Text(content ?? ''),
             ],
           ),
         ),
@@ -158,18 +159,18 @@ class PhotoDetailWidgetState extends State<PhotoDetailWidget> {
     _bannerAd = createBannerAd()
     ..load()
     ..show();
-    // OneSignal.shared
-    //     .setNotificationReceivedHandler((OSNotification notification) {
-    //   setState(() {
-    //     title = notification.payload.title;
-    //     content = notification.payload.body;
-    //
-    //   });
-    // });
-    //
-    // OneSignal.shared
-    //     .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
-    //   print('Notification');
-    // });
+    OneSignal.shared
+        .setNotificationReceivedHandler((OSNotification notification) {
+      setState(() {
+        title = notification.payload.title;
+        content = notification.payload.body;
+
+      });
+    });
+
+    OneSignal.shared
+        .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+      print('Notification');
+    });
   }
 }

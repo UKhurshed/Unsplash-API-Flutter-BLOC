@@ -67,10 +67,12 @@ class _WebViewScreen extends State<WebViewScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
         child: WebView(
-          initialUrl: _link,
+          initialUrl: _link.isEmpty ? 'https://yandex.ru' : _link,
           onWebViewCreated: (WebViewController controller) {
             webView = controller;
           },
+          javascriptMode: JavascriptMode.unrestricted,
+
         ),
         onWillPop: _onBack);
   }
